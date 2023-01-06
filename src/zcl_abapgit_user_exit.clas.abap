@@ -86,6 +86,23 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_exit~validate_before_push.
+    TRY.
+
+        NEW zcl_abapgit_commitlint(
+          is_comment = is_comment
+          iv_url = iv_url
+          iv_branch_name = iv_branch_name
+          io_rules = NEW zcl_abapgit_commitlint_rules( )
+        )->validate( ).
+
+      CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
+        zcx_abapgit_exception=>raise(
+          EXPORTING
+            iv_text     = 'CommitLit exception'
+            ix_previous = lo_exception
+        ).
+
+    ENDTRY.
 
   ENDMETHOD.
 
