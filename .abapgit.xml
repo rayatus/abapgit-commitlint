@@ -5,6 +5,11 @@
    <MASTER_LANGUAGE>E</MASTER_LANGUAGE>
    <STARTING_FOLDER>/src/</STARTING_FOLDER>
    <FOLDER_LOGIC>PREFIX</FOLDER_LOGIC>
+   <IGNORE>
+    <item>./node_modules</item>
+    <item>.git</item>
+    <item>.package*.json</item>
+   </IGNORE>
   </DATA>
  </asx:values>
 </asx:abap>
