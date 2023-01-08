@@ -93,14 +93,45 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
           iv_url = iv_url
           iv_branch_name = iv_branch_name
           io_rules = NEW zcl_abapgit_commitlint_rules( )
-        )->validate( ).
+          )->validate( ).
 
       CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
-        zcx_abapgit_exception=>raise(
-          EXPORTING
-            iv_text     = 'CommitLit exception'
-            ix_previous = lo_exception
-        ).
+
+        DATA(lt_log) = lo_exception->get_log( ).
+        IF lt_log IS NOT INITIAL.
+          TRY.
+              cl_salv_table=>factory(
+                IMPORTING
+                  r_salv_table = DATA(lo_alv)
+                CHANGING
+                  t_table      = lt_log ).
+
+              lo_alv->get_columns( )->set_optimize( ).
+
+              lo_alv->set_screen_popup(
+                EXPORTING
+                  start_column = 1
+                  end_column   = 5
+                  start_line   = 1
+                  end_line     = 5
+              ).
+              lo_alv->display( ).
+
+              zcx_abapgit_exception=>raise(
+                EXPORTING
+                  iv_text = 'Git message does not stick with the rules.' ).
+
+            CATCH cx_salv_msg INTO DATA(lo_alv_exception).
+              zcx_abapgit_exception=>raise(
+                EXPORTING
+                  iv_text     = 'CommitLit exception while displaying report log'
+                  ix_previous = lo_alv_exception ).
+          ENDTRY.
+        ELSE.
+          zcx_abapgit_exception=>raise(
+            EXPORTING
+              iv_text = lo_exception->get_text( ) ).
+        ENDIF.
 
     ENDTRY.
 
