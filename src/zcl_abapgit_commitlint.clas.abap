@@ -46,22 +46,6 @@ CLASS zcl_abapgit_commitlint DEFINITION
     DATA mt_log TYPE ty_t_log.
     DATA mv_has_errors TYPE abap_bool.
 
-    METHODS add_error
-      IMPORTING
-        iv_message TYPE string.
-
-    METHODS add_warning
-      IMPORTING
-        iv_message TYPE String.
-
-    METHODS add_info
-      IMPORTING
-        iv_message TYPE String.
-
-    METHODS add_message
-      IMPORTING
-        iv_severity TYPE ty_v_severity
-        iv_message  TYPE String.
     METHODS set_log
       IMPORTING
         it_log TYPE ty_t_log.
@@ -74,21 +58,14 @@ ENDCLASS.
 CLASS zcl_abapgit_commitlint IMPLEMENTATION.
 
   METHOD constructor.
-    ms_detail-branch_name = iv_branch_name.
-    ms_detail-comment = is_comment.
-    ms_detail-repo_url = iv_url.
-    ms_detail-linter = io_linter.
+    ms_detail-branch_name   = iv_branch_name.
+    ms_detail-comment       = is_comment.
+    ms_detail-repo_url      = iv_url.
+    ms_detail-linter        = io_linter.
   ENDMETHOD.
 
   METHOD validate.
-
-"    set_log( ms_detail-linter->zif_abapgit_commitlint_linter~lint( ms_detail-comment-comment ) ).
-
-    IF has_errors(  ).
-      RAISE EXCEPTION TYPE zcx_abapgit_commitlint
-        EXPORTING
-          it_log = get_log( ).
-    ENDIF.
+    set_log( ms_detail-linter->lint( ms_detail-comment-comment ) ).
   ENDMETHOD.
 
   METHOD has_errors.
@@ -98,21 +75,6 @@ CLASS zcl_abapgit_commitlint IMPLEMENTATION.
   METHOD get_log.
     rt_log = mt_log.
   ENDMETHOD.
-
-  METHOD add_error.
-    add_message( iv_severity = mc_severity-error iv_message = iv_message ).
-  ENDMETHOD.
-  METHOD add_warning.
-    add_message( iv_severity = mc_severity-warning iv_message = iv_message ).
-  ENDMETHOD.
-  METHOD add_info.
-    add_message( iv_severity = mc_severity-info iv_message = iv_message ).
-  ENDMETHOD.
-
-  METHOD add_message.
-    INSERT VALUE #( severity = iv_severity message = iv_message ) INTO TABLE mt_log.
-  ENDMETHOD.
-
 
   METHOD set_log.
     mt_log = it_log.
