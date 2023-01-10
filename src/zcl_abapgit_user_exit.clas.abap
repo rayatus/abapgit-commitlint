@@ -89,10 +89,10 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
     TRY.
 
         NEW zcl_abapgit_commitlint(
-          is_comment = is_comment
-          iv_url = iv_url
-          iv_branch_name = iv_branch_name
-          io_rules = NEW zcl_abapgit_commitlint_rules( )
+          is_comment        = is_comment
+          iv_url            = iv_url
+          iv_branch_name    = iv_branch_name
+          io_linter         = NEW zcl_abapgit_commitlint_srv( )
           )->validate( ).
 
       CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
@@ -111,7 +111,7 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
               lo_alv->set_screen_popup(
                 EXPORTING
                   start_column = 1
-                  end_column   = 5
+                  end_column   = 10
                   start_line   = 1
                   end_line     = 5
               ).

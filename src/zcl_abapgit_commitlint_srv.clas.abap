@@ -4,13 +4,14 @@ CLASS zcl_abapgit_commitlint_srv DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+
+    INTERFACES zif_abapgit_commitlint_linter.
+
     CONSTANTS mc_poc_url TYPE string VALUE 'https://abap-srv-commitlint-shiny-klipspringer-bk.cfapps.us10-001.hana.ondemand.com/'.
-    METHODS constructor
-      IMPORTING iv_url TYPE string DEFAULT mc_poc_url.
-    METHODS lint
-      IMPORTING iv_comment    TYPE string
-      RETURNING VALUE(rt_log) TYPE zcl_abapgit_commitlint=>ty_t_log
-      RAISING   zcx_abapgit_commitlint.
+
+    METHODS constructor.
+
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA mv_url TYPE string.
@@ -45,40 +46,8 @@ ENDCLASS.
 CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
 
   METHOD constructor.
-    mv_url = iv_url.
+    mv_url = mc_poc_url.
   ENDMETHOD.
-
-  METHOD lint.
-
-    TRY.
-        DATA(li_client) = create_http_client(  ).
-
-        cl_http_utility=>set_request_uri(
-          request = li_client->request
-          uri     = mc_uri-lint ).
-
-        li_client->request->set_method( if_http_request=>co_request_method_post ).
-        li_client->request->set_compression( ).
-
-        li_client->request->set_cdata( to_json( iv_comment ) ) .
-
-        li_client->request->set_header_field(
-          name  = 'content-type'
-          value = 'application/json; charset=utf-8' ).
-
-        rt_log = to_log( EXPORTING iv_json = send_recive( li_client ) ).
-
-        li_client->close( ).
-
-      CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
-        IF li_client IS BOUND.
-          li_client->close( ).
-        ENDIF.
-        RAISE EXCEPTION lo_exception.
-    ENDTRY.
-  ENDMETHOD.
-
-
 
   METHOD create_http_client.
     cl_http_client=>create_by_url(
@@ -197,6 +166,33 @@ CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
           EXPORTING
             previous = lo_exception
             message  = lo_exception->get_text( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD zif_abapgit_commitlint_linter~lint.
+
+    TRY.
+        DATA(li_client) = create_http_client(  ).
+
+        cl_http_utility=>set_request_uri(
+          request = li_client->request
+          uri     = mc_uri-lint ).
+
+        li_client->request->set_method( if_http_request=>co_request_method_post ).
+        li_client->request->set_compression( ).
+
+        li_client->request->set_cdata( to_json( iv_comment ) ) .
+
+        li_client->request->set_header_field(
+          name  = 'content-type'
+          value = 'application/json; charset=utf-8' ).
+
+        rt_log = to_log( EXPORTING iv_json = send_recive( li_client ) ).
+
+      CLEANUP.
+        IF li_client IS BOUND.
+          li_client->close( ).
+        ENDIF.
     ENDTRY.
   ENDMETHOD.
 

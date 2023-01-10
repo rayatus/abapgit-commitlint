@@ -24,7 +24,7 @@ CLASS zcl_abapgit_commitlint DEFINITION
         !is_comment     TYPE zif_abapgit_definitions=>ty_comment
         !iv_url         TYPE string
         !iv_branch_name TYPE string
-        !io_rules       TYPE REF TO zif_abapgit_commitlint_rules.
+        !io_linter      TYPE REF TO zif_abapgit_commitlint_linter.
 
     METHODS has_errors RETURNING VALUE(rv_has_errors) TYPE abap_bool.
     METHODS get_log RETURNING VALUE(rt_log) TYPE ty_t_log.
@@ -40,7 +40,7 @@ CLASS zcl_abapgit_commitlint DEFINITION
             comment     TYPE zif_abapgit_definitions=>ty_comment,
             repo_url    TYPE string,
             branch_name TYPE string,
-            rules       TYPE REF TO zif_abapgit_commitlint_rules,
+            linter      TYPE REF TO zif_abapgit_commitlint_linter,
           END OF ms_detail.
 
     DATA mt_log TYPE ty_t_log.
@@ -77,12 +77,12 @@ CLASS zcl_abapgit_commitlint IMPLEMENTATION.
     ms_detail-branch_name = iv_branch_name.
     ms_detail-comment = is_comment.
     ms_detail-repo_url = iv_url.
-    ms_detail-rules = io_rules.
+    ms_detail-linter = io_linter.
   ENDMETHOD.
 
   METHOD validate.
 
-    set_log( NEW zcl_abapgit_commitlint_srv( )->lint( ms_detail-comment-comment ) ).
+"    set_log( ms_detail-linter->zif_abapgit_commitlint_linter~lint( ms_detail-comment-comment ) ).
 
     IF has_errors(  ).
       RAISE EXCEPTION TYPE zcx_abapgit_commitlint
