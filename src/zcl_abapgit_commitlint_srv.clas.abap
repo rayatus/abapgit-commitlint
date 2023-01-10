@@ -188,6 +188,7 @@ CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
           value = 'application/json; charset=utf-8' ).
 
         rt_log = to_log( EXPORTING iv_json = send_recive( li_client ) ).
+        li_client->close(  ).
 
       CLEANUP.
         IF li_client IS BOUND.
