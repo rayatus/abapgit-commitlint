@@ -6,7 +6,11 @@ CLASS zcl_abapgit_commitlint_ui DEFINITION
   PUBLIC SECTION.
 
     CLASS-METHODS display_log
-      IMPORTING it_log TYPE zcl_abapgit_commitlint=>ty_t_log
+      IMPORTING it_log          TYPE zcl_abapgit_commitlint=>ty_t_log
+                iv_start_column TYPE i DEFAULT 1
+                iv_end_column   TYPE i DEFAULT 60
+                iv_start_line   TYPE i DEFAULT 1
+                iv_end_line     TYPE i DEFAULT 10
       RAISING   zcx_abapgit_exception.
 
   PROTECTED SECTION.
@@ -32,10 +36,10 @@ CLASS zcl_abapgit_commitlint_ui IMPLEMENTATION.
 
         lo_alv->set_screen_popup(
           EXPORTING
-            start_column = 1
-            end_column   = 10
-            start_line   = 1
-            end_line     = 5
+            start_column = iv_start_column
+            end_column   = iv_end_column
+            start_line   = iv_start_line
+            end_line     = iv_end_line
         ).
         lo_alv->display( ).
 

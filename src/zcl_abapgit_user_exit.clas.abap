@@ -95,6 +95,11 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
         lo_commitlint->validate( ).
         IF lo_commitlint->has_errors(  ) = abap_true.
           zcl_abapgit_commitlint_ui=>display_log( lo_commitlint->get_log( ) ).
+
+          "Abort commit
+          zcx_abapgit_exception=>raise(
+            EXPORTING
+              iv_text = 'Commit message does not stick to the rules.' ).
         ENDIF.
 
       CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
