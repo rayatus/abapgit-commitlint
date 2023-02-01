@@ -36,7 +36,7 @@ CLASS zcl_abapgit_commitlint_srv DEFINITION
     METHODS to_log
       IMPORTING
                 iv_json       TYPE string
-      RETURNING VALUE(rt_log) TYPE zcl_abapgit_commitlint=>ty_t_log
+      RETURNING VALUE(rt_log) TYPE zif_abapgit_commitlint_types=>ty_t_log
       RAISING   zcx_abapgit_commitlint.
 
 ENDCLASS.
@@ -145,7 +145,7 @@ CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
         DATA(lt_node) = li_reader->members( '/errors' ).
         LOOP AT lt_node INTO DATA(lv_node).
           DATA(lv_prefix) = '/errors/' && lv_node.
-          INSERT VALUE #( severity   = zcl_abapgit_commitlint=>mc_severity-error
+          INSERT VALUE #( severity   = zif_abapgit_commitlint_types=>mc_severity-error
                            rule_name  = li_reader->get_string( lv_prefix && '/name' )
                            message    = li_reader->get_string( lv_prefix && '/message' )
                         ) INTO TABLE rt_log.
@@ -155,7 +155,7 @@ CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
         lt_node = li_reader->members( '/warnings' ).
         LOOP AT lt_node INTO lv_node.
           lv_prefix = '/warnings/' && lv_node.
-          INSERT VALUE #( severity   = zcl_abapgit_commitlint=>mc_severity-warning
+          INSERT VALUE #( severity   = zif_abapgit_commitlint_types=>mc_severity-warning
                            rule_name  = li_reader->get_string( lv_prefix && '/name' )
                            message    = li_reader->get_string( lv_prefix && '/message' )
                         ) INTO TABLE rt_log.
@@ -185,7 +185,7 @@ CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
 
         li_client->request->set_header_field(
           name  = 'content-type'
-          value = 'application/json; charset=utf-8' ).
+          value = 'text/plain; charset=utf-8' ).
 
         rt_log = to_log( EXPORTING iv_json = send_recive( li_client ) ).
         li_client->close(  ).

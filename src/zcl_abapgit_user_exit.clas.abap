@@ -87,25 +87,31 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
 
   METHOD zif_abapgit_exit~validate_before_push.
     TRY.
+        DATA(lo_commit_linter)     = zcl_abapgit_commitlint=>get_linter( io_repo ).
 
-        DATA(lo_commitlint) = NEW zcl_abapgit_commitlint( is_comment        = is_comment
-                                                          iv_url            = iv_url
-                                                          iv_branch_name    = iv_branch_name
-                                                          io_linter         = NEW zcl_abapgit_commitlint_srv( ) ).
-        lo_commitlint->validate( ).
-        IF lo_commitlint->has_errors(  ) = abap_true.
-          zcl_abapgit_commitlint_ui=>display_log( lo_commitlint->get_log( ) ).
+        IF lo_commit_linter IS BOUND.
+          DATA(lo_commitlint_engine) = NEW zcl_abapgit_commitlint( is_comment        = is_comment
+                                                                   iv_url            = io_repo->get_url(  )
+                                                                   iv_branch_name    = io_repo->get_selected_branch(  )
+                                                                   io_linter         = lo_commit_linter ).
+          lo_commitlint_engine->validate( ).
+          IF lo_commitlint_engine->has_errors(  ) = abap_true.
+            zcl_abapgit_commitlint_ui=>display_log( lo_commitlint_engine->get_log( ) ).
 
-          "Abort commit
-          zcx_abapgit_exception=>raise(
-            EXPORTING
-              iv_text = 'Commit message does not stick to the rules.' ).
+            IF zcl_abapgit_commitlint=>is_push_allowed_with_errors( io_repo ) = abap_false.
+              "Abort commit
+              zcx_abapgit_exception=>raise(
+                EXPORTING
+                  iv_text = 'Commit message does not stick to the rules.' ).
+            ENDIF.
+          ENDIF.
         ENDIF.
 
       CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
         zcx_abapgit_exception=>raise(
           EXPORTING
-            iv_text = lo_exception->get_text( ) ).
+            iv_text     = lo_exception->get_text( )
+            ix_previous = lo_exception ).
     ENDTRY.
 
   ENDMETHOD.

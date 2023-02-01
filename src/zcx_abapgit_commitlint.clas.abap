@@ -10,12 +10,15 @@ CLASS zcx_abapgit_commitlint DEFINITION
     INTERFACES if_t100_message .
 
     DATA message TYPE string READ-ONLY .
+
     METHODS constructor
       IMPORTING
         !textid   LIKE if_t100_message=>t100key OPTIONAL
         !previous LIKE previous OPTIONAL
-        !message  TYPE string OPTIONAL.
+        !message  TYPE string OPTIONAL .
 
+    METHODS if_message~get_text
+        REDEFINITION .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -42,4 +45,12 @@ CLASS zcx_abapgit_commitlint IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD if_message~get_text.
+    IF message IS INITIAL.
+      result = super->if_message~get_text( ).
+    ELSE.
+      result = message.
+    ENDIF.
+
+  ENDMETHOD.
 ENDCLASS.
