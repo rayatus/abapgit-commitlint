@@ -7,7 +7,7 @@ CLASS zcl_abapgit_commitlint_srv DEFINITION
 
     INTERFACES zif_abapgit_commitlint_linter.
 
-    CONSTANTS mc_poc_url TYPE string VALUE 'https://abap-srv-commitlint-shiny-klipspringer-bk.cfapps.us10-001.hana.ondemand.com/'.
+    CONSTANTS mc_poc_url TYPE string VALUE 'https://abap-srv-commitlint-quiet-numbat-gh.cfapps.eu10.hana.ondemand.com'.
 
     METHODS constructor.
 

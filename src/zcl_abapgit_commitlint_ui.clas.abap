@@ -127,7 +127,7 @@ CLASS zcl_abapgit_commitlint_ui IMPLEMENTATION.
               lo_col->set_long_text( 'Message' ).
               lo_col->set_medium_text( 'Message' ).
               lo_col->set_short_text( 'Message' ).
-              lo_col->set_output_length( 30 ).
+              lo_col->set_output_length( 40 ).
           ENDCASE.
         ENDLOOP.
 
