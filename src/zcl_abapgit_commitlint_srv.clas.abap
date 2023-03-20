@@ -7,11 +7,6 @@ CLASS zcl_abapgit_commitlint_srv DEFINITION
 
     INTERFACES zif_abapgit_commitlint_linter.
 
-    CONSTANTS mc_poc_url TYPE string VALUE 'https://abap-srv-commitlint-quiet-numbat-gh.cfapps.eu10.hana.ondemand.com'.
-
-    METHODS constructor.
-
-
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA mv_url TYPE string.
@@ -45,9 +40,6 @@ ENDCLASS.
 
 CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
 
-  METHOD constructor.
-    mv_url = mc_poc_url.
-  ENDMETHOD.
 
   METHOD create_http_client.
     cl_http_client=>create_by_url(
@@ -195,6 +187,11 @@ CLASS zcl_abapgit_commitlint_srv IMPLEMENTATION.
           li_client->close( ).
         ENDIF.
     ENDTRY.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_commitlint_linter~initialize.
+    mv_url = iv_url.
   ENDMETHOD.
 
 ENDCLASS.

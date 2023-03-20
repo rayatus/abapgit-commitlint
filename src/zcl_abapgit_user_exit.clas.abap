@@ -75,6 +75,25 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
 
   METHOD zif_abapgit_exit~on_event.
 
+    CASE ii_event->mv_action.
+      WHEN 'commitlint'.
+        TRY.
+            DATA(lv_key) = ii_event->query( )->get( 'KEY' ).
+            IF lv_key IS NOT INITIAL.
+              DATA(lo_repo) = CAST zcl_abapgit_repo( zcl_abapgit_repo_srv=>get_instance( )->get( CONV #( lv_key ) ) ).
+            ENDIF.
+
+            rs_handled-page  = zcl_abapgit_commitlint_page=>create( lo_repo ).
+            rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+          CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
+            zcx_abapgit_exception=>raise( iv_text     = lo_exception->get_text(  )
+                                          ix_previous = lo_exception ).
+        ENDTRY.
+
+
+    ENDCASE.
+
   ENDMETHOD.
 
   METHOD zif_abapgit_exit~pre_calculate_repo_status.
@@ -91,8 +110,7 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
 
         IF lo_commit_linter IS BOUND.
           DATA(lo_commitlint_engine) = NEW zcl_abapgit_commitlint( is_comment        = is_comment
-                                                                   iv_url            = io_repo->get_url(  )
-                                                                   iv_branch_name    = io_repo->get_selected_branch(  )
+                                                                   io_repo           = io_repo
                                                                    io_linter         = lo_commit_linter ).
           lo_commitlint_engine->validate( ).
           IF lo_commitlint_engine->has_errors(  ) = abap_true.

@@ -7,4 +7,7 @@ INTERFACE zif_abapgit_commitlint_linter
     RETURNING VALUE(rt_log) TYPE zif_abapgit_commitlint_types=>ty_t_log
     RAISING   zcx_abapgit_commitlint.
 
+  METHODS initialize
+    IMPORTING iv_url TYPE string.
+
 ENDINTERFACE.

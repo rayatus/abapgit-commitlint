@@ -1,52 +1,62 @@
-class ZCL_ABAPGIT_COMMITLINT definition
-  public
-  final
-  create public .
+CLASS zcl_abapgit_commitlint DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  methods CONSTRUCTOR
-    importing
-      !IS_COMMENT type ZIF_ABAPGIT_GIT_DEFINITIONS=>TY_COMMENT "zif_abapgit_definitions=>ty_comment
-      !IV_URL type STRING
-      !IV_BRANCH_NAME type STRING
-      !IO_LINTER type ref to ZIF_ABAPGIT_COMMITLINT_LINTER .
-  methods HAS_ERRORS
-    returning
-      value(RV_HAS_ERRORS) type ABAP_BOOL .
-  methods GET_LOG
-    returning
-      value(RT_LOG) type ZIF_ABAPGIT_COMMITLINT_TYPES=>TY_T_LOG .
-  methods VALIDATE
-    raising
-      ZCX_ABAPGIT_COMMITLINT .
-  class-methods GET_LINTER
-    importing
-      !IO_REPO type ref to ZCL_ABAPGIT_REPO_ONLINE
-    returning
-      value(RO_LINTER) type ref to ZIF_ABAPGIT_COMMITLINT_LINTER
-    raising
-      ZCX_ABAPGIT_COMMITLINT .
-  class-methods IS_PUSH_ALLOWED_WITH_ERRORS
-    importing
-      !IO_REPO type ref to ZCL_ABAPGIT_REPO_ONLINE
-    returning
-      value(RF_ALLOWED) type ABAP_BOOL
-    raising
-      ZCX_ABAPGIT_COMMITLINT .
+    METHODS constructor
+      IMPORTING
+        !is_comment TYPE zif_abapgit_git_definitions=>ty_comment
+        !io_repo    TYPE REF TO zif_abapgit_repo_online
+        !io_linter  TYPE REF TO zif_abapgit_commitlint_linter .
+
+    METHODS has_errors
+      RETURNING
+        VALUE(rv_has_errors) TYPE abap_bool .
+
+    METHODS get_log
+      RETURNING
+        VALUE(rt_log) TYPE zif_abapgit_commitlint_types=>ty_t_log .
+
+    METHODS validate
+      RAISING
+        zcx_abapgit_commitlint .
+
+    CLASS-METHODS get_linter
+      IMPORTING
+        !io_repo         TYPE REF TO zcl_abapgit_repo_online
+      RETURNING
+        VALUE(ro_linter) TYPE REF TO zif_abapgit_commitlint_linter
+      RAISING
+        zcx_abapgit_commitlint .
+
+    CLASS-METHODS is_push_allowed_with_errors
+      IMPORTING
+        !io_repo          TYPE REF TO zcl_abapgit_repo_online
+      RETURNING
+        VALUE(rf_allowed) TYPE abap_bool
+      RAISING
+        zcx_abapgit_commitlint .
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
 
     DATA: BEGIN OF ms_detail,
-            comment     TYPE zif_abapgit_git_definitions=>ty_comment,
-            repo_url    TYPE string,
-            branch_name TYPE string,
-            linter      TYPE REF TO zif_abapgit_commitlint_linter,
+            comment        TYPE zif_abapgit_git_definitions=>ty_comment,
+            repo           TYPE REF TO zif_abapgit_repo_online,
+            linter         TYPE REF TO zif_abapgit_commitlint_linter,
+            commitlint_url TYPE string,
           END OF ms_detail.
 
     DATA mt_log TYPE zif_abapgit_commitlint_types=>ty_t_log.
     DATA mv_has_errors TYPE abap_bool.
+
+    CLASS-METHODS create_linter
+      IMPORTING iv_linter        TYPE zabapcommitlint-linter
+      RETURNING VALUE(ro_linter) TYPE REF TO zif_abapgit_commitlint_linter
+      RAISING   zcx_abapgit_commitlint .
 
     METHODS set_log
       IMPORTING
@@ -55,31 +65,26 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_COMMITLINT IMPLEMENTATION.
+CLASS zcl_abapgit_commitlint IMPLEMENTATION.
 
 
   METHOD constructor.
-    ms_detail-branch_name   = iv_branch_name.
     ms_detail-comment       = is_comment.
-    ms_detail-repo_url      = iv_url.
+    ms_detail-repo          = io_repo.
     ms_detail-linter        = io_linter.
   ENDMETHOD.
 
-
   METHOD validate.
-    set_log( ms_detail-linter->lint( ms_detail-comment-comment ) ).
+    set_log( ms_detail-linter->lint( iv_comment = ms_detail-comment-comment ) ).
   ENDMETHOD.
-
 
   METHOD has_errors.
     rv_has_errors = mv_has_errors.
   ENDMETHOD.
 
-
   METHOD get_log.
     rt_log = mt_log.
   ENDMETHOD.
-
 
   METHOD set_log.
     mt_log = it_log.
@@ -88,15 +93,26 @@ CLASS ZCL_ABAPGIT_COMMITLINT IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+  METHOD create_linter.
+    TRY.
+        CREATE OBJECT ro_linter TYPE (iv_linter).
+      CATCH cx_sy_create_object_error.
+        RAISE EXCEPTION TYPE zcx_abapgit_commitlint
+          EXPORTING
+            message = |{ iv_linter } does not implement 'zif_abapgit_commitlint_linter' interface.|.
+    ENDTRY.
+  ENDMETHOD.
 
   METHOD get_linter.
-    DATA(lv_repourl) = io_repo->get_url(  ).
-    ro_linter = lcl_custo_reader=>factory(  )->get_linter_from_repourl( lv_repourl ).
+    DATA(ls_settings) = new zcl_abapgit_commitlint_db(  )->get_settings( io_repo ).
+    IF ls_settings-active = abap_true AND ls_settings-linter IS NOT INITIAL.
+      ro_linter = create_linter( ls_settings-linter ).
+      ro_linter->initialize( conv #( ls_settings-url ) ).
+    ENDIF.
   ENDMETHOD.
 
 
   METHOD is_push_allowed_with_errors.
-    DATA(lv_repourl) = io_repo->get_url(  ).
-    rf_allowed = lcl_custo_reader=>factory(  )->get_by_repourl( lv_repourl )-allow_push_if_error.
+    rf_allowed = new zcl_abapgit_commitlint_db(  )->get_settings( io_repo )-allow_push_if_error.
   ENDMETHOD.
 ENDCLASS.
