@@ -44,6 +44,8 @@ METHOD zif_abapgit_exit~validate_before_push.
 
 * **ENHANCE_REPO_TOOLBAR**: adds a new abapGit page in repo settings so that you could decide per each repo which rules to check and how to behave if any is not correct.
 
+⚠️ Warning!: this UserExit is not yet released -> [PullRequest](https://github.com/abapGit/abapGit/pull/6249)
+
 ```abap
   METHOD zif_abapgit_exit~enhance_repo_toolbar.
 
