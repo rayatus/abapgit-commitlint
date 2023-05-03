@@ -142,4 +142,13 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
 
   ENDMETHOD.
 
+  method zif_abapgit_exit~enhance_repo_toolbar.
+
+    io_menu->add( iv_txt = 'CommitLint'
+                  iv_act = |{ zcl_abapgit_commitlint_page=>mc_id }?key={ iv_key }|
+                  iv_cur = boolc( iv_act = zcl_abapgit_commitlint_page=>mc_id ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
+
