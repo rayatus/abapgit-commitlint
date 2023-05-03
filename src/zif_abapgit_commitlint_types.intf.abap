@@ -13,6 +13,6 @@ INTERFACE zif_abapgit_commitlint_types
            rule_name TYPE string,
            message   TYPE string,
          END   OF ty_s_message_log,
-         ty_t_log TYPE STANDARD TABLE OF ty_s_message_log WITH DEFAULT KEY.
+         ty_t_log TYPE STANDARD TABLE OF ty_s_message_log WITH EMPTY KEY.
 
 ENDINTERFACE.
