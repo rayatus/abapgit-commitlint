@@ -64,3 +64,6 @@ By default, this repo uses an implementation of [conventional commit](https://ww
 ## Dependencies
 * [abapgit](https://github.com/abapGit/abapGit)
 * [abap-srv-commitlint](https://github.com/rayatus/abap-srv-commitlint)
+
+## Bonus
+Ensuring that your commit messages stick to a predefined rule, you could even automate your CHANGELOGs by having the corresponding pipeline in place :wink: There are quite few libraries out there but to provide an example have a look at [commitizen](https://github.com/commitizen/cz-cli).
