@@ -25,6 +25,14 @@ CLASS zcl_abapgit_user_exit IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD zif_abapgit_exit~change_supported_data_objects.
+
+  ENDMETHOD.
+
+  METHOD zif_abapgit_exit~change_supported_object_types.
+
+  ENDMETHOD.
+
   METHOD zif_abapgit_exit~change_local_host.
 
   ENDMETHOD.
