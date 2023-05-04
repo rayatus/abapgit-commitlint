@@ -1,3 +1,8 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/rayatus/sap_reis_parallel_reporting/blob/master/LICENSE)
+[![Code Statistics](https://img.shields.io/badge/CodeStatistics-abaplint-blue)](https://abaplint.app/stats/rayatus/abapgit-commitlint)
+
+
+
 # abapgit-commitlint
 This repo allows abapGit to check if commit message complies with the commit rules defined per each repo.
 
