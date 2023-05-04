@@ -2,9 +2,7 @@
 This repo allows abapGit to check if commit message complies with the commit rules defined per each repo.
 
 ## Installation
-Use [abapgit](https://github.com/abapGit/abapGit) for installing this repo.
-
-⚠️ Be aware that this repo already contains an implementation of ZCL_ABAPGIT_USER_EXIT class, so if you plan to install it while having any other Exit active do not pull that class but just implement the code described in this document.
+Use [abapgit](https://github.com/abapGit/abapGit) for installing this repo and then implement described userExits.
 
 ## Considerations
 This repo uses following [abapgit UserExits](https://docs.abapgit.org/ref-exits.html):
@@ -45,8 +43,6 @@ METHOD zif_abapgit_exit~validate_before_push.
 <img src="./img/commitlint_error.png" alt="Example of wrong commit message" style="width:40%;heigh:40%" />
 
 * **ENHANCE_REPO_TOOLBAR**: adds a new abapGit page in repo settings so that you could decide per each repo which rules to check and how to behave if any is not correct.
-
-⚠️ Warning!: this UserExit is not yet released -> [PullRequest](https://github.com/abapGit/abapGit/pull/6249)
 
 ```abap
   METHOD zif_abapgit_exit~enhance_repo_toolbar.
