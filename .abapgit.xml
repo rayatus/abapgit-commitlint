@@ -5,6 +5,10 @@
    <MASTER_LANGUAGE>E</MASTER_LANGUAGE>
    <STARTING_FOLDER>/src/</STARTING_FOLDER>
    <FOLDER_LOGIC>PREFIX</FOLDER_LOGIC>
+   <IGNORE>
+    <item>/src/zcl_abapgit_user_exit.clas.abap</item>
+    <item>/src/zcl_abapgit_user_exit.clas.xml</item>
+   </IGNORE>
   </DATA>
  </asx:values>
 </asx:abap>

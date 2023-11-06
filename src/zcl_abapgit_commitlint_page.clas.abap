@@ -41,67 +41,70 @@ CLASS zcl_abapgit_commitlint_page DEFINITION
         zcx_abapgit_commitlint .
 
   PROTECTED SECTION.
-  PRIVATE SECTION.
-    TYPES: BEGIN OF ty_commitlint_settings,
+private section.
+
+  types:
+    BEGIN OF ty_commitlint_settings,
              active TYPE abap_bool,
-           END OF ty_commitlint_settings.
+           END OF ty_commitlint_settings .
 
-    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
-    DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map .
-    DATA mo_repo TYPE REF TO zcl_abapgit_repo .
-    DATA mo_form TYPE REF TO zcl_abapgit_html_form .
-    DATA mo_form_util TYPE REF TO zcl_abapgit_html_form_utils .
-
-    DATA ms_commitlint_settings TYPE ty_commitlint_settings.
-
-    CLASS-DATA: BEGIN OF ms_pages,
+  data MO_FORM_DATA type ref to ZCL_ABAPGIT_STRING_MAP .
+  data MO_VALIDATION_LOG type ref to ZCL_ABAPGIT_STRING_MAP .
+  data MO_REPO type ref to ZCL_ABAPGIT_REPO .
+  data MO_FORM type ref to ZCL_ABAPGIT_HTML_FORM .
+  data MO_FORM_UTIL type ref to ZCL_ABAPGIT_HTML_FORM_UTILS .
+  data MS_COMMITLINT_SETTINGS type TY_COMMITLINT_SETTINGS .
+  class-data:
+    BEGIN OF ms_pages,
                   sett_locl TYPE REF TO zif_abapgit_gui_renderable,
-                END OF ms_pages.
+                END OF ms_pages .
 
-    METHODS get_form_schema
-      RETURNING
-        VALUE(ro_form) TYPE REF TO zcl_abapgit_html_form
-      RAISING
-        zcx_abapgit_commitlint .
-
-    METHODS read_settings
-      RAISING
-        zcx_abapgit_commitlint .
-
-    METHODS save_settings
-      RAISING
-        zcx_abapgit_commitlint.
-
-    METHODS validate_form
-      IMPORTING
-        !io_form_data            TYPE REF TO zcl_abapgit_string_map
-      RETURNING
-        VALUE(ro_validation_log) TYPE REF TO zcl_abapgit_string_map
-      RAISING
-        zcx_abapgit_commitlint
-        zcx_abapgit_exception .
-
-    METHODS get_form_data
-      RETURNING
-        VALUE(rs_settings) TYPE zabapcommitlint.
-
-    METHODS set_form_data
-      IMPORTING is_settings TYPE zabapcommitlint
-      RAISING   zcx_abapgit_commitlint.
-
+  methods GET_FORM_SCHEMA
+    returning
+      value(RO_FORM) type ref to ZCL_ABAPGIT_HTML_FORM
+    raising
+      ZCX_ABAPGIT_COMMITLINT .
+  methods READ_SETTINGS
+    returning
+      value(RO_FORM_DATA) type ref to ZCL_ABAPGIT_STRING_MAP
+    raising
+      ZCX_ABAPGIT_COMMITLINT .
+  methods SAVE_SETTINGS
+    raising
+      ZCX_ABAPGIT_COMMITLINT .
+  methods VALIDATE_FORM
+    importing
+      !IO_FORM_DATA type ref to ZCL_ABAPGIT_STRING_MAP
+    returning
+      value(RO_VALIDATION_LOG) type ref to ZCL_ABAPGIT_STRING_MAP
+    raising
+      ZCX_ABAPGIT_COMMITLINT
+      ZCX_ABAPGIT_EXCEPTION .
+  methods GET_FORM_DATA
+    returning
+      value(RS_SETTINGS) type ZABAPCOMMITLINT .
+  methods SET_FORM_DATA
+    importing
+      !IS_SETTINGS type ZABAPCOMMITLINT
+    returning
+      value(RO_FORM_DATA) type ref to ZCL_ABAPGIT_STRING_MAP
+    raising
+      ZCX_ABAPGIT_COMMITLINT .
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_commitlint_page IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_COMMITLINT_PAGE IMPLEMENTATION.
+
 
   METHOD zif_abapgit_gui_event_handler~on_event.
 
-    mo_form_data = mo_form_util->normalize( ii_event->form_data( ) ).
+    mo_form_data->merge( zcl_abapgit_html_form_utils=>create( mo_form )->normalize( ii_event->form_data( ) ) ).
 
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-go_back.
-        rs_handled-state = mo_form_util->exit( mo_form_data ).
+        rs_handled-state = zcl_abapgit_html_form_utils=>create( mo_form )->exit( io_form_data    = mo_form_data
+                                                                                 io_compare_with = read_settings( ) ).
 
       WHEN mc_form_field-button_save.
         TRY.
@@ -117,19 +120,11 @@ CLASS zcl_abapgit_commitlint_page IMPLEMENTATION.
     ENDCASE.
   ENDMETHOD.
 
+
   METHOD zif_abapgit_gui_renderable~render.
     register_handlers( ).
 
-    IF mo_form_util->is_empty( mo_form_data ) = abap_true.
-      TRY.
-          read_settings( ).
-        CATCH zcx_abapgit_commitlint INTO DATA(lo_exception).
-          zcx_abapgit_exception=>raise( iv_text     = lo_exception->get_text( )
-                                        ix_previous = lo_exception ).
-      ENDTRY.
-    ENDIF.
-
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( `<div class="repo">` ).
 
@@ -145,86 +140,97 @@ CLASS zcl_abapgit_commitlint_page IMPLEMENTATION.
     ri_html->add( `</div>` ).
   ENDMETHOD.
 
+
   METHOD create.
     DATA lo_component TYPE REF TO zcl_abapgit_commitlint_page.
 
-    lo_component = NEW #( io_repo = io_repo ).
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo = io_repo.
 
     TRY.
+
         ri_page = zcl_abapgit_gui_page_hoc=>create(
-          iv_page_title      = 'CommitLint settings'
-          io_page_menu       = zcl_abapgit_gui_chunk_lib=>settings_repo_toolbar(
-                                 iv_key = io_repo->get_key( )
-                                 iv_act = mc_id )
-          ii_child_component = lo_component ).
+          iv_page_title          = 'CommitLint settings'
+          io_page_menu           =  zcl_abapgit_gui_menus=>repo_settings(
+                                     iv_key = io_repo->get_key( )
+                                     iv_act = zif_abapgit_definitions=>c_action-repo_settings )
+          ii_child_component     = lo_component ).
 
       CATCH zcx_abapgit_exception INTO DATA(lo_exception).
-        RAISE EXCEPTION NEW zcx_abapgit_commitlint( previous = lo_exception ).
+        RAISE EXCEPTION TYPE zcx_abapgit_commitlint EXPORTING previous = lo_exception.
     ENDTRY.
 
   ENDMETHOD.
 
+
   METHOD constructor.
 
     super->constructor( ).
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
-
-    read_settings( ).
+    mo_form_data = read_settings( ).
+    mo_form_util->set_data( mo_form_data ).
 
   ENDMETHOD.
+
 
   METHOD get_form_schema.
 
-    ro_form = zcl_abapgit_html_form=>create( iv_form_id = mc_form_id ).
+    ro_form = zcl_abapgit_html_form=>create(
+      iv_form_id   = mc_form_id
+      "iv_help_page = 'https://docs.abapgit.org/settings-local.html'
+    ).
 
     ro_form->start_group(
-        iv_name  = mc_form_field-group
-        iv_label = 'CommitLint Settings'
-        iv_hint  = 'Settings valid for this system only'
-      )->checkbox(
-        iv_name  = mc_form_field-is_active
-        iv_label = 'Activate CommitLint'
-        iv_hint  = 'Is commitLint activated for this repo?'
-      )->text(
-        iv_name       = mc_form_field-linter_class
-        iv_label      = 'Lintern'
-        iv_upper_case = abap_true
-        iv_condense   = abap_true
-        iv_max        = 30
-        iv_hint       = |ABAP Class that implements { mc_linter_interface  }|
-      )->text(
-        iv_name     = mc_form_field-url
-        iv_label    = 'URL'
-        iv_condense = abap_true
-        iv_hint     = 'URL where the Linter is hosted'
-      )->checkbox(
-        iv_name  = mc_form_field-allow_push_if_error
-        iv_label = 'Allow push if error'
-        iv_hint  = 'Allow commit push even if commit message has errors?'
-      )->command(
-        iv_label    = 'Save Settings'
-        iv_cmd_type = zif_abapgit_html_form=>c_cmd_type-input_main
-        iv_action   = mc_form_field-button_save
-      )->command(
-        iv_label  = 'Back'
-        iv_action = zif_abapgit_definitions=>c_action-go_back ).
+      iv_name        = mc_form_field-group
+      iv_label       = 'CommitLint Settings'
+      iv_hint        = 'Settings valid for this system only'
+    )->checkbox(
+      iv_name        = mc_form_field-is_active
+      iv_label       = 'Activate CommitLint'
+      iv_hint        = 'Is commitLint activated for this repo?'
+    )->text(
+      iv_name        = mc_form_field-linter_class
+      iv_label       = 'Lintern'
+      iv_upper_case  = abap_true
+      iv_condense    = abap_true
+      iv_max         = 30
+      iv_hint        = |ABAP Class that implements { mc_linter_interface  }|
+    )->text(
+      iv_name        = mc_form_field-url
+      iv_label       = 'URL'
+      iv_condense    = abap_true
+      iv_hint        = 'URL where the Linter is hosted'
+    )->checkbox(
+      iv_name        = mc_form_field-allow_push_if_error
+      iv_label       = 'Allow push if error'
+      iv_hint        = 'Allow commit push even if commit message has errors?'
+    )->command(
+      iv_label       = 'Save Settings'
+      iv_cmd_type    = zif_abapgit_html_form=>c_cmd_type-input_main
+      iv_action      = mc_form_field-button_save
+    )->command(
+      iv_label       = 'Back'
+      iv_action      = zif_abapgit_definitions=>c_action-go_back ).
 
   ENDMETHOD.
+
 
   METHOD read_settings.
 
-    DATA(ls_settings) = NEW zcl_abapgit_commitlint_db( )->get_settings( CAST zif_abapgit_repo_online( mo_repo ) ).
-    set_form_data( ls_settings ).
+    DATA(ls_settings) = NEW zcl_abapgit_commitlint_db(  )->get_settings( CAST zif_abapgit_repo_online( mo_repo ) ).
+    ro_form_data = set_form_data( ls_settings ).
 
   ENDMETHOD.
 
+
   METHOD save_settings.
-    NEW zcl_abapgit_commitlint_db( )->save_settings( io_repo     = CAST zif_abapgit_repo_online( mo_repo )
-                                                     is_settings = get_form_data( ) ).
+    NEW zcl_abapgit_commitlint_db(  )->save_settings( io_repo = CAST zif_abapgit_repo_online( mo_repo )
+                                                      is_settings = get_form_data( ) ).
 
   ENDMETHOD.
 
@@ -233,15 +239,24 @@ CLASS zcl_abapgit_commitlint_page IMPLEMENTATION.
     "ToDo: Move this into an UserExit!
     io_menu->add( iv_txt = 'CommitLint'
                   iv_act = |{ mc_id }?key={ iv_key }|
-                  iv_cur = xsdbool( iv_act = mc_id ) ).
+                  iv_cur = boolc( iv_act = mc_id ) ).
 
   ENDMETHOD.
 
 
   METHOD validate_form.
 
+    DATA:
+      lv_folder           TYPE string,
+      lv_len              TYPE i,
+      lv_component        TYPE zif_abapgit_dot_abapgit=>ty_requirement-component,
+      lv_min_release      TYPE zif_abapgit_dot_abapgit=>ty_requirement-min_release,
+      lv_min_patch        TYPE zif_abapgit_dot_abapgit=>ty_requirement-min_patch,
+      lv_version_constant TYPE string,
+      lx_exception        TYPE REF TO zcx_abapgit_exception.
+
     ro_validation_log = mo_form_util->validate( io_form_data ).
-    DATA(ls_settings) = get_form_data( ).
+    DATA(ls_settings) = get_form_data(  ).
     IF ls_settings-active = abap_true AND ls_settings-linter IS INITIAL.
       ro_validation_log->set( iv_key = mc_form_field-linter_class
                               iv_val = |Enter a valid Lintern class| ).
@@ -249,10 +264,10 @@ CLASS zcl_abapgit_commitlint_page IMPLEMENTATION.
     IF ls_settings-active = abap_true AND ls_settings-linter IS NOT INITIAL.
 
       TRY.
-          DATA(lt_implementing_classes) = NEW cl_oo_interface( intfname = mc_linter_interface )->get_implementing_classes( ).
+          DATA(lt_implementing_classes) = NEW cl_oo_interface( intfname = mc_linter_interface  )->get_implementing_classes(  ).
           IF NOT line_exists( lt_implementing_classes[ clsname = ls_settings-linter ] ).
             ro_validation_log->set( iv_key = mc_form_field-linter_class
-                                    iv_val = |{ ls_settings-linter } does not implement { mc_linter_interface }| ).
+                                   iv_val = |{ ls_settings-linter } does not implement { mc_linter_interface  }| ).
           ENDIF.
         CATCH cx_class_not_existent INTO DATA(lo_exception).
           RAISE EXCEPTION TYPE zcx_abapgit_commitlint
@@ -264,27 +279,31 @@ CLASS zcl_abapgit_commitlint_page IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD set_form_data.
     TRY.
-        mo_form_data->set(
+        CREATE OBJECT ro_form_data.
+
+        ro_form_data->set(
             iv_key = mc_form_field-is_active
             iv_val = is_settings-active
-          )->set(
+        )->set(
             iv_key = mc_form_field-linter_class
             iv_val = is_settings-linter
-          )->set(
+        )->set(
             iv_key = mc_form_field-allow_push_if_error
             iv_val = is_settings-allow_push_if_error
-          )->set(
+        )->set(
             iv_key = mc_form_field-url
-            iv_val = is_settings-url ).
-
-        mo_form_util->set_data( mo_form_data ).
+            iv_val = is_settings-url
+        ).
 
       CATCH zcx_abapgit_exception INTO DATA(lo_exception).
-        RAISE EXCEPTION NEW zcx_abapgit_commitlint( previous = lo_exception ).
+        RAISE EXCEPTION TYPE zcx_abapgit_commitlint EXPORTING previous = lo_exception.
     ENDTRY.
+
   ENDMETHOD.
+
 
   METHOD get_form_data.
 
@@ -294,5 +313,4 @@ CLASS zcl_abapgit_commitlint_page IMPLEMENTATION.
     rs_settings-url                 = mo_form_data->get( mc_form_field-url ).
 
   ENDMETHOD.
-
 ENDCLASS.

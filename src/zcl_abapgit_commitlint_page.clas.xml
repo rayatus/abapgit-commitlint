@@ -11,6 +11,20 @@
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
    </VSEOCLASS>
+   <DESCRIPTIONS_SUB>
+    <SEOSUBCOTX>
+     <CMPNAME>READ_SETTINGS</CMPNAME>
+     <SCONAME>RO_FORM_DATA</SCONAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>abapGit - String Map</DESCRIPT>
+    </SEOSUBCOTX>
+    <SEOSUBCOTX>
+     <CMPNAME>SET_FORM_DATA</CMPNAME>
+     <SCONAME>RO_FORM_DATA</SCONAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>abapGit - String Map</DESCRIPT>
+    </SEOSUBCOTX>
+   </DESCRIPTIONS_SUB>
   </asx:values>
  </asx:abap>
 </abapGit>
